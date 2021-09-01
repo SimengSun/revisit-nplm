@@ -78,6 +78,9 @@ class Generator(object):
                 if self.config.decoding_algorithm == "greedy":
                     decode_output.append(torch.argmax(all_probs))
 
+                else:
+                    raise NotImplementedError
+
             all_decoded.append(decode_output)
 
         with open(output_path, 'w') as f:
