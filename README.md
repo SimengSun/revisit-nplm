@@ -90,6 +90,27 @@ python main.py \
   --split valid 
 ```
 
+#### Generation
+
+This codebase also supports generate from existing models. To generate from a trained transformer, use the command below:
+```
+python main.py\
+  --action generate --restore $EXPERIMENT_PATH/checkpoint.pt \
+  --model transformer -v --adaptive \
+  --tie-weights --tie-projs \
+  --num-layers 16 --num-heads 10 --embedding-size 410 \
+  --model-size 410 --hidden-dim 2100  \
+  --attn-type learned --attn-impl full \
+  -d $DATA_PATH --split test  \
+  --max-length 30 \
+  --decoding-algorithm greedy \
+  --prompt-file generation_prompt.txt \
+  --output-directory ./ \
+  --output-filename generation_output.txt
+```
+`--prompt-file` contains line-by-line prompts. `--output-filename` contains the output from the model, each proceeded by the corresponding prompt.
+Current `--decoding-algorithm` only supports greedy decoding, other sampling-based algorithms will be added in the future.
+
 ## Track experiments with Comet.ml
 
 If you have a [comet.ml](https://comet.ml) account, on you can track
@@ -124,5 +145,6 @@ If you use this code base or related results in our paper, please cite:
     abstract = "Recent progress in language modeling has been driven not only by advances in neural architectures, but also through hardware and optimization improvements. In this paper, we revisit the neural probabilistic language model (NPLM) of Bengio et al. (2003), which simply concatenates word embeddings within a fixed window and passes the result through a feed-forward network to predict the next word. When scaled up to modern hardware, this model (despite its many limitations) performs much better than expected on word-level language model benchmarks. Our analysis reveals that the NPLM achieves lower perplexity than a baseline Transformer with short input contexts but struggles to handle long-term dependencies. Inspired by this result, we modify the Transformer by replacing its first self-attention layer with the NPLM{'}s local concatenation layer, which results in small but consistent perplexity decreases across three word-level language modeling datasets.",
 }
 ```
+
 
 
