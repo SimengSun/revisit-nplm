@@ -85,10 +85,15 @@ class AdaptiveSoftmax(nn.Module):
 
 		return logit
 
-	def forward(self, hidden, target, keep_order=False, return_rank=False):
+	def forward(self, hidden, target, keep_order=False, return_rank=False, return_all_logprobs=False):
 		'''
 			hidden :: [len*bsz x d_proj]
 			target :: [len*bsz]
+
+			return_rank: return the rank of the target token in the vocabulary
+			return_all_logprobs: (only used during generation) return log probabilities for all tokens
+								in the vocabulary, should only be used during generation, otherwise
+								likely get OOM error
 		'''
 
 		if hidden.size(0) != target.size(0):
@@ -125,6 +130,22 @@ class AdaptiveSoftmax(nn.Module):
 
 			head_logit = self._compute_logit(hidden, head_weight, head_bias, head_proj)
 			head_logprob = F.log_softmax(head_logit, dim=1)
+
+			if return_all_logprobs:
+				all_logprobs = [head_logprob[:, :-len(self.cutoffs)+1]]
+				cutoff_values = [0] + self.cutoffs
+
+				for i in range(len(cutoff_values) - 1):
+					l_idx, r_idx = cutoff_values[i], cutoff_values[i + 1]
+
+					if i != 0:
+						weight_i, bias_i, proj_i = weights[i], biases[i], self.out_projs[i]
+						tail_logit_i = self._compute_logit(hidden, weight_i, bias_i, proj_i)
+						tail_logprob_i = F.log_softmax(tail_logit_i, dim=1)
+						all_logprobs.append(head_logprob[:, -i] + tail_logprob_i)
+
+				if return_all_logprobs:
+					return torch.cat(all_logprobs, dim=1)
 
 			nll = torch.zeros_like(target,
 					dtype=hidden.dtype, device=hidden.device)
@@ -187,5 +208,4 @@ class AdaptiveSoftmax(nn.Module):
 		if not return_rank:
 			return nll
 		else:
-			
 			return nll, rank
