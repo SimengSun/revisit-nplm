@@ -5,6 +5,7 @@ from args import parse_args
 from data.text import Dataset
 from actions.train import Trainer
 from actions.evaluate import Evaluator
+from actions.generate import Generator
 from actions.lambada_acc import LambadaAcc
 from models.transformer import Transformer
 from models.nplm import NPLM
@@ -64,6 +65,9 @@ def	main():
 	elif configs.action == "evaluate":	
 		actioner = Evaluator(configs, model, dl, device)
 
+	elif configs.action == "generate":
+		actioner = Generator(configs, model, dl, device)
+
 	elif configs.action == "acc":
 		actioner = LambadaAcc(configs, model, dl, device)
 
@@ -99,3 +103,4 @@ def	main():
 
 if __name__ == "__main__":
 	main()
+

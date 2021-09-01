@@ -187,7 +187,7 @@ class TransformerLayer(nn.Module):
         dim = inputs.shape[1]
         device = inputs.device
         mask_store = TransformerLayer._masks.__dict__
-        if device not in mask_store:
+        if device not in mask_store or (device in mask_store and mask_store[device].shape[1] < dim):
             mask = inputs.new_full((dim, dim), float('-inf'))
             mask_store[device] = triu(mask, 1, 1, 1)
 
@@ -391,7 +391,6 @@ class Transformer(nn.Module):
         word_embedding = self.embed(batch, self.embedding)
 
         decoded = {
-            'cache': cache,
             'state': word_embedding,
         }
         
@@ -400,18 +399,12 @@ class Transformer(nn.Module):
         for i, decoder in enumerate(self.layers):
             decoded = decoder(decoded, layer_i=i, global_mask=global_mask)
 
-        # compute projection to the vocabulary
-        state = decoded['state']
-        if cache is not None:
-            state = state[:, -1:]       # fetch newly generated tok
-
         return {
-            'cache': decoded.get('cache'),
-            'state': state,            # bs x L x hidden_dim
-            #'logits': self.embedding(state, reverse=True).transpose(2, 1)     # bs x |V| x L
+            'state': decoded['state'],          # bs x L x hidden_dim
         }
 
     def embed(self, inputs, token_embedding):
         ''' Embed the given inputs '''
         return self.dropout(token_embedding(inputs) + self.position_embedding(inputs))
+
 

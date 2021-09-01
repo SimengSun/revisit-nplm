@@ -8,7 +8,7 @@ import torch.utils.data
 from torch.utils.data.dataloader import DataLoader
 import os
 import sys
-import pickle
+import pickle5 as pickle #import pickle
 import math
 from collections import defaultdict
 
@@ -107,6 +107,13 @@ class Dataset(torch.utils.data.IterableDataset):
 		else:
 			return torch.tensor([self.tok2id[tok] if tok in self.tok2id else self.tok2id['<unk>'] for tok in line])
 
+	def decode_tokids(self, tensor):
+		tokens = []
+		for tokid in tensor:
+			tokens.append(self.id2tok[tokid])
+		tokens = [t if t != '<eos>' else '\n' for t in tokens]
+		return ' '.join(tokens)
+
 	def binarize(self, split):
 		"""binarize data to torch.tensor shape (doc_len, )"""
 		with open(os.path.join(self.data_dir, f"{split}.txt"), "r") as fn:
@@ -148,3 +155,4 @@ class Dataset(torch.utils.data.IterableDataset):
 
 		nstep = data.size(0) // bsz
 		return data[ : nstep * bsz].view(bsz, -1)
+

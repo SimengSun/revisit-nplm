@@ -6,7 +6,7 @@ from comet_ml import Experiment, ExistingExperiment
 
 DATASETS = ['wt103', 'wt102', 'enwik8', 'lambada']
 MODELS = ['transformer', 'nplm']
-ACTIONS = ['preprocess', 'train', 'evaluate', 'acc']
+ACTIONS = ['preprocess', 'train', 'evaluate', 'generate', 'acc']
 
 def _integer_geq(value=0):
 	'''
@@ -540,7 +540,7 @@ def parse_args(argv=None):
 		'--output-directory',
 		type=str,
 		default='/tmp/stupidlm/output',
-		help='Where to store translated strings'
+		help='Where to store the generation'
 	)
 	parser.add_argument(
 		'--output-filename',
@@ -552,7 +552,7 @@ def parse_args(argv=None):
 		'--order-output',
 		default=False,
 		action='store_true',
-		help='Whether to print the translated strings in the original dataset ordering'
+		help='Whether to print the generated strings in the original dataset ordering'
 	)
 	parser.add_argument(
 		'--timed',
@@ -561,6 +561,26 @@ def parse_args(argv=None):
 		const=1,
 		nargs='?',
 		help='How many times to run translation to gauge the translation speed'
+	)
+
+	# generation configs
+	parser.add_argument(
+		'--prompt-file',
+		type=str,
+		default='./generation_prompt.txt',
+		help="path to the pre-tokenized prompts for generation"
+	)
+	parser.add_argument(
+		'--max-length',
+		type=int,
+		default=150,
+		help="maximum decoding steps during inference time"
+	)
+	parser.add_argument(
+		'--decoding-algorithm',
+		type=str,
+		default='greedy',
+		help="decoding algorithm, currently only support greedy decoding"
 	)
 
 	args = parser.parse_args()
@@ -630,6 +650,7 @@ def parse_args(argv=None):
 		args.dropout_p = 0
 		
 	return args
+
 
 
 

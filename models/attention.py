@@ -521,3 +521,4 @@ class Attention(nn.Module):
             raise ValueError("implementation method undefined")
 
         return self.output_projection(attended) if not self.no_output_projection else attended
+
